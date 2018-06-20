@@ -3,6 +3,8 @@ import requests
 import numpy as np
 import pandas as pd
 import lxml.html as html
+import smtp
+import datetime
 
 # TODO: используй arXiv API (https://github.com/zonca/python-parse-arxiv/blob/master/python_arXiv_parsing_example.py)
 key_words = ["ballistic heat transfer", "scalar lattice", "thermal processes", "harmonic crystal", "kinetic temperature"]
@@ -14,8 +16,9 @@ response = requests.get(url)
 page = html.fromstring(response.content)
 
 links = page.find_class("list-identifier")
+# TODO: раскидай по функциям
 if response.status_code == 200:
-# successful connection
+    # successful connection
 
     print("-\nSuccessfull connection to {}".format(url))
     info  = page.find_class("meta")
@@ -105,13 +108,22 @@ if response.status_code == 200:
         resulting_data = source_data.append(whole_unique_data, ignore_index=True)\
             .drop_duplicates(subset=["Title", "Abstracts", "PDF"], keep=False)
 
+        number_of_res = resulting_data.shape[0]
+        print("-\n{} NEW submissions".format(number_of_res))
+
+        # if number_of_res > 0:
+
         resulting_data.to_csv(all_data_output_file, sep=";", mode="a", header=False, index=None)
         resulting_data.to_csv(new_data_output_file, sep=";", mode="w", index=None)
+        print("-\n.csv is successfully finished!")
 
-    print("-\n{} NEW submissions".format(resulting_data.shape[0]))
-    print("-\n.csv is successfully finished!")
+        subject = "arXiv new articles " + datetime.datetime.today().strftime("%Y.%m.%d %H:%M:%S")
+        smtp.send_mail("theormechipmm@mail.ru", ["theormechipmm@mail.ru"], subject, "", files=[new_data_output_file])
+        print("-\n.email is successfully sent!")
+
+
 
 else:
-# unsuccessful connection
+    # unsuccessful connection
 
     print("-\nConnection is failed to {}".format(url))
