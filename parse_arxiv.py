@@ -111,15 +111,15 @@ if response.status_code == 200:
         number_of_res = resulting_data.shape[0]
         print("-\n{} NEW submissions".format(number_of_res))
 
-        # if number_of_res > 0:
+        if number_of_res > 0:
 
-        resulting_data.to_csv(all_data_output_file, sep=";", mode="a", header=False, index=None)
-        resulting_data.to_csv(new_data_output_file, sep=";", mode="w", index=None)
-        print("-\n.csv is successfully finished!")
+            resulting_data.to_csv(all_data_output_file, sep=";", mode="a", header=False, index=None)
+            resulting_data.to_csv(new_data_output_file, sep=";", mode="w", index=None)
+            print("-\n.csv is successfully finished!")
 
-        subject = "arXiv new articles " + datetime.datetime.today().strftime("%Y.%m.%d %H:%M:%S")
-        smtp.send_mail("theormechipmm@mail.ru", ["theormechipmm@mail.ru"], subject, "", files=[new_data_output_file])
-        print("-\n.email is successfully sent!")
+            subject = "arXiv new articles " + datetime.datetime.today().strftime("%Y.%m.%d %H:%M:%S")
+            smtp.send_mail("theormechipmm@mail.ru", ["theormechipmm@mail.ru"], subject, "", files=[new_data_output_file])
+            print("-\n.email is successfully sent!")
 
 
 
