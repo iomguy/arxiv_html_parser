@@ -10,8 +10,9 @@ import datetime
 def number_of_inclusions(substr_list, main_str):
     """counts elements from substr_list that are included in main_str"""
 
-    result = sum([(s in main_str) for s in substr_list])
-    return result
+    included_key_words = [s for s in substr_list if s in main_str]
+    result = len(included_key_words)
+    return result, included_key_words
 
 
 def form_data(page_content, key_words_list):
@@ -20,12 +21,13 @@ def form_data(page_content, key_words_list):
     print("-\nSuccessful connection to {}".format(url))
     info = page_content.find_class("meta")
 
-    submissions_data = pd.DataFrame(columns=["Title", "Authors", "Abstracts", "PDF"])
+    submissions_data = pd.DataFrame(columns=csv_columns)
 
     title_list = []
     authors_list = []
     abstracts_list = []
     pdf_list = []
+    included_key_words_list = []
 
     if len(links) != len(info):
 
@@ -48,7 +50,9 @@ def form_data(page_content, key_words_list):
                 titles = []
                 authors = []
 
-                if number_of_inclusions(key_words_list, meta_info_text) >= 2:
+                inclusions, included_key_words = number_of_inclusions(key_words_list, meta_info_text)
+
+                if inclusions >= 2:
 
                     abs_link = ""
                     pdf_link = ""
@@ -74,6 +78,7 @@ def form_data(page_content, key_words_list):
                     authors_list.append(", ".join(authors))
                     abstracts_list.append(domain_url + abs_link)
                     pdf_list.append(domain_url + pdf_link)
+                    included_key_words_list.append(",".join(included_key_words))
 
             except StopIteration:
 
@@ -84,6 +89,7 @@ def form_data(page_content, key_words_list):
         submissions_data["Authors"] = authors_list
         submissions_data["Abstracts"] = abstracts_list
         submissions_data["PDF"] = pdf_list
+        submissions_data["Key_words"] = included_key_words_list
 
         return submissions_data, index
 
@@ -93,6 +99,7 @@ if __name__ == "__main__":
     # TODO: используй arXiv API (https://github.com/zonca/python-parse-arxiv/blob/master/python_arXiv_parsing_example.py)
     key_words = ["ballistic heat transfer", "scalar lattice", "thermal processes", "harmonic crystal",
                  "kinetic temperature", "thermal"]
+    csv_columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words"]
 
     domain_url = "https://arxiv.org"
     url = "https://arxiv.org/list/physics/new"
@@ -114,7 +121,7 @@ if __name__ == "__main__":
             # if file does not exist write header
             source_data = data
             new_data = data
-            pd.DataFrame(columns=["Title", "Authors", "Abstracts", "PDF"]).\
+            pd.DataFrame(columns=csv_columns).\
                 to_csv(all_data_output_file, sep=";", index=None)
 
         else:
@@ -123,11 +130,11 @@ if __name__ == "__main__":
 
             # source and new data without duplicates
             whole_unique_data = source_data.append(data, ignore_index=True)\
-                .drop_duplicates(subset=["Title", "Abstracts", "PDF"], keep='first')
+                .drop_duplicates(subset=csv_columns, keep='first')
 
             # only new data
             new_data = source_data.append(whole_unique_data, ignore_index=True)\
-                .drop_duplicates(subset=["Title", "Abstracts", "PDF"], keep=False)
+                .drop_duplicates(subset=csv_columns, keep=False)
 
         number_of_res = data.shape[0]
         print("-\n{} submissions with key words found".format(number_of_res))
