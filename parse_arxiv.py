@@ -1,6 +1,5 @@
 import os
 import requests
-import numpy as np
 import pandas as pd
 import lxml.html as html
 import smtp
@@ -11,7 +10,8 @@ from urllib.parse import urlparse
 def number_of_inclusions(words_searched, text):
     """counts elements from substr_list that are included in main_str"""
 
-    included_key_words = [s for s in words_searched if s in text]
+    lowercase_text = text.lower()
+    included_key_words = [s for s in words_searched if s.lower() in lowercase_text]
     number_of_included_key_words = len(included_key_words)
     return number_of_included_key_words, included_key_words
 
@@ -158,10 +158,6 @@ def send_mail(amount, attachment):
 
 if __name__ == "__main__":
 
-    # TODO: используй arXiv API (https://github.com/zonca/python-parse-arxiv/blob/master/python_arXiv_parsing_example.py)
-    # TODO: добавь нечувствительность к регистру
-    key_words = ["ballistic heat transfer", "scalar lattice", "thermal processes", "harmonic crystal",
-                 "kinetic temperature", "thermal"]
     columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words"]
 
     url = "https://arxiv.org/list/physics/new"
@@ -178,7 +174,7 @@ if __name__ == "__main__":
         whole_data, number_of_submissions_in_total = form_data(csv_columns=columns,
                                                                page_content=page,
                                                                domain=url_domain,
-                                                               key_words_list=key_words)
+                                                               key_words_list=list(set(key_words)))
 
         new_results_amount, new_results = form_data_to_csv(whole_data,
                                                            csv_columns=columns,
@@ -189,5 +185,4 @@ if __name__ == "__main__":
 
     else:
         # unsuccessful connection
-
         print("-\nConnection is failed to {}".format(url))
