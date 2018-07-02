@@ -157,6 +157,12 @@ def send_mail(amount, attachment):
 
 
 if __name__ == "__main__":
+    # TODO: используй arXiv API https://github.com/zonca/python-parse-arxiv/blob/master/python_arXiv_parsing_example.py
+    key_words = ["heat", "transfer", "lattice", "thermal", "crystal", "vibration", "kinetic", "temperature", "energy",
+                 "defect", "waves", "amplitude", "periodic", "excitation", "harmonic", "chain", "conduct",
+                 "supratransmission", "phonon", "junction", "molecular", "spectrum", "driving", "frequency", "discrete",
+                 "linear", "perturbation", "atomistic", "transient", "dimension", "process", "atomic", "oscillation",
+                 "decay", "covariance", "correlation", "eigenmode", "eigenfrequency", "elastic"]
 
     columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words"]
 
