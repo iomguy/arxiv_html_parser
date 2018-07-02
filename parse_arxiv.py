@@ -63,6 +63,14 @@ def form_data(page_content, key_words_list):
                     for meta_author in meta_info_authors:
                         authors.append(meta_author.text.replace("\n", ""))
 
+                    try:
+                        # if authors is not empty and "Authors" is the first element
+                        authors = authors[1:] if "Authors" in authors[0] else authors
+
+                    except:
+
+                        print("No-author article")
+
                     for elem in links_children:
 
                         # TODO: добавить try except
@@ -97,6 +105,7 @@ def form_data(page_content, key_words_list):
 if __name__ == "__main__":
 
     # TODO: используй arXiv API (https://github.com/zonca/python-parse-arxiv/blob/master/python_arXiv_parsing_example.py)
+    # TODO: добавь нечувствительность к регистру
     key_words = ["ballistic heat transfer", "scalar lattice", "thermal processes", "harmonic crystal",
                  "kinetic temperature", "thermal"]
     csv_columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words"]
