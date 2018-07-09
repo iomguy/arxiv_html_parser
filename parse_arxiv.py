@@ -29,6 +29,7 @@ def form_data(page_content, csv_columns, domain, key_words_list):
     abstracts_list = []
     pdf_list = []
     included_key_words_list = []
+    subject_list = []
 
     if len(links) != len(info):
 
@@ -44,13 +45,19 @@ def form_data(page_content, csv_columns, domain, key_words_list):
                 # first child HtmlElement with a "mathjax" class
                 meta_info_titles = next(
                     x.getchildren() for x in meta_info_tags if x.attrib["class"] == "list-title mathjax")
-                meta_info_authors = next(x.getchildren() for x in meta_info_tags if x.attrib["class"] == "list-authors")
+                meta_info_authors = next(
+                    x.getchildren() for x in meta_info_tags if x.attrib["class"] == "list-authors")
+                meta_info_subject = next(
+                    x.getchildren() for x in meta_info_tags if x.attrib["class"] == "list-subjects")
+                meta_info_primary_subject = next(
+                    x for x in meta_info_subject if x.attrib["class"] == "primary-subject")
                 meta_info_text = next(
                     x.text.replace("\n", "") for x in meta_info_tags if x.attrib["class"] == "mathjax")
 
                 links_children = link.getchildren()
                 titles = []
                 authors = []
+                subjects = []
 
                 inclusions, included_key_words = number_of_inclusions(key_words_list, meta_info_text)
 
@@ -64,6 +71,11 @@ def form_data(page_content, csv_columns, domain, key_words_list):
 
                     for meta_author in meta_info_authors:
                         authors.append(meta_author.text.replace("\n", ""))
+
+                    # TODO: добавить фильтр по соответствующим Subjects
+                    subjects.append(meta_info_primary_subject.text.replace("\n", ""))
+                    subjects.extend(meta_info_primary_subject.tail.replace("\n", "").split("; "))
+                    subjects.remove("")
 
                     try:
                         # if authors is not empty and "Authors" is the first element
@@ -89,6 +101,7 @@ def form_data(page_content, csv_columns, domain, key_words_list):
                     abstracts_list.append(domain + abs_link)
                     pdf_list.append(domain + pdf_link)
                     included_key_words_list.append(", ".join(included_key_words))
+                    subject_list.append(", ".join(subjects))
 
             except StopIteration:
 
@@ -100,6 +113,7 @@ def form_data(page_content, csv_columns, domain, key_words_list):
         submissions_data["Abstracts"] = abstracts_list
         submissions_data["PDF"] = pdf_list
         submissions_data["Key_words"] = included_key_words_list
+        submissions_data["Subjects"] = subject_list
 
         return submissions_data, index
 
@@ -157,14 +171,19 @@ def send_mail(amount, attachment):
 
 
 if __name__ == "__main__":
-    # TODO: используй arXiv API https://github.com/zonca/python-parse-arxiv/blob/master/python_arXiv_parsing_example.py
+    # TODO: возможно, нужно будет использовать arXiv API:
+    # https://github.com/zonca/python-parse-arxiv/blob/master/python_arXiv_parsing_example.py
+    # Разделить слова по значимости (очевидно, что ключевые слова:
+    # {амплитуда, период, температура, частота, корреляция, ковариация} встречаются почти в любой научной статье
+    # Совпадению по таким словам стоит ставить меньший вес чем по остальным.
+
     key_words = ["heat", "transfer", "lattice", "thermal", "crystal", "vibration", "kinetic", "temperature", "energy",
                  "defect", "waves", "amplitude", "periodic", "excitation", "harmonic", "chain", "conduct",
                  "supratransmission", "phonon", "junction", "molecular", "spectrum", "driving", "frequency", "discrete",
                  "linear", "perturbation", "atomistic", "transient", "dimension", "process", "atomic", "oscillation",
                  "decay", "covariance", "correlation", "eigenmode", "eigenfrequency", "elastic"]
 
-    columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words"]
+    columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words", "Subjects"]
 
     url = "https://arxiv.org/list/physics/new"
     url_parsed = urlparse(url)
