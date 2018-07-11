@@ -177,11 +177,8 @@ if __name__ == "__main__":
     # {амплитуда, период, температура, частота, корреляция, ковариация} встречаются почти в любой научной статье
     # Совпадению по таким словам стоит ставить меньший вес чем по остальным.
 
-    key_words = ["heat", "transfer", "lattice", "thermal", "crystal", "vibration", "kinetic", "temperature", "energy",
-                 "defect", "waves", "amplitude", "periodic", "excitation", "harmonic", "chain", "conduct",
-                 "supratransmission", "phonon", "junction", "molecular", "spectrum", "driving", "frequency", "discrete",
-                 "linear", "perturbation", "atomistic", "transient", "dimension", "process", "atomic", "oscillation",
-                 "decay", "covariance", "correlation", "eigenmode", "eigenfrequency", "elastic"]
+    with open("key_words.txt", "r", encoding="utf-8") as key_words_file:
+        key_words = key_words_file.read().split("\n")
 
     columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words", "Subjects"]
 

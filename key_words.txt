@@ -1,0 +1,44 @@
+heat
+transfer
+lattice
+thermal
+vibration
+temperature
+harmonic
+chain
+phonon
+molecular
+spectrum
+discrete
+linear
+atomistic
+covariance
+correlation
+heat flux
+steady-state heat
+heat bath
+harmonic crystal
+heat conductivity
+harmonic chain
+thermal conductance
+langevin reservoir
+harmonic lattice
+thermal transport
+alternating masses
+nonequilibrium steady state
+scalar lattice
+heat transport
+anomalous heat transport
+heat conduction
+superdiffusive
+finite conductivity
+fourier law
+ballistic heat
+fourier’s law
+anharmonic lattice
+energy transport
+tensor temperature
+temperature tensor
+non-fourier
+molecular dynamics
+lattice dynamics
