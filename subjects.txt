@@ -1,0 +1,10 @@
+cond-mat.mtrl-sci
+cond-mat.mes-hall
+cond-mat.soft
+cond-mat.stat-mech
+math-ph
+nlin
+physics.class-ph
+physics.comp-ph
+physics.gen-ph
+physics.app-ph

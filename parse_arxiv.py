@@ -180,31 +180,41 @@ if __name__ == "__main__":
     with open("key_words.txt", "r", encoding="utf-8") as key_words_file:
         key_words = key_words_file.read().split("\n")
 
+    with open("subjects.txt", "r", encoding="utf-8") as subjects_file:
+        subjects = subjects_file.read().split("\n")
+
     columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words", "Subjects"]
+    whole_data_from_all_subjects = pd.DataFrame(columns=columns)
 
-    url = "https://arxiv.org/list/physics/new"
-    url_parsed = urlparse(url)
-    url_domain = "://".join([url_parsed.scheme, url_parsed.netloc])
+    for subject in subjects:
 
-    response = requests.get(url)
-    page = html.fromstring(response.content)
+        url = "https://arxiv.org/list/{0}/new".format(subject )
+        url_parsed = urlparse(url)
+        url_domain = "://".join([url_parsed.scheme, url_parsed.netloc])
 
-    links = page.find_class("list-identifier")
+        response = requests.get(url)
+        page = html.fromstring(response.content)
 
-    if response.status_code == 200:
-        # successful connection
-        whole_data, number_of_submissions_in_total = form_data(csv_columns=columns,
-                                                               page_content=page,
-                                                               domain=url_domain,
-                                                               key_words_list=list(set(key_words)))
+        links = page.find_class("list-identifier")
 
-        new_results_amount, new_results = form_data_to_csv(whole_data,
-                                                           csv_columns=columns,
-                                                           all_data_output_file="arXiv.csv",
-                                                           new_data_output_file="arXiv_new.csv")
+        if response.status_code == 200:
+            # successful connection
+            whole_data, number_of_submissions_in_total = form_data(csv_columns=columns,
+                                                                   page_content=page,
+                                                                   domain=url_domain,
+                                                                   key_words_list=list(set(key_words)))
 
-        send_mail(new_results_amount, new_results)
+            whole_data_from_all_subjects = whole_data_from_all_subjects.\
+                append(whole_data, ignore_index=True).\
+                drop_duplicates(keep='first')
 
     else:
         # unsuccessful connection
         print("-\nConnection is failed to {}".format(url))
+
+new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
+                                                           csv_columns=columns,
+                                                           all_data_output_file="arXiv.csv",
+                                                           new_data_output_file="arXiv_new.csv")
+
+send_mail(new_results_amount, new_results)
