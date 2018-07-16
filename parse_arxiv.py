@@ -185,13 +185,14 @@ if __name__ == "__main__":
 
     columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words", "Subjects"]
     whole_data_from_all_subjects = pd.DataFrame(columns=columns)
+    number_of_submissions_in_total = 0
 
     for subject in subjects:
 
-        url = "https://arxiv.org/list/{0}/new".format(subject )
+        url = "https://arxiv.org/list/{0}/new".format(subject)
         url_parsed = urlparse(url)
-        url_domain = "://".join([url_parsed.scheme, url_parsed.netloc])
-
+        url_domain = "://".join([url_parsed.scheme, url_parsed.netloc, url_parsed.path, url_parsed.query])
+        print(url_parsed)
         response = requests.get(url)
         page = html.fromstring(response.content)
 
@@ -199,10 +200,13 @@ if __name__ == "__main__":
 
         if response.status_code == 200:
             # successful connection
-            whole_data, number_of_submissions_in_total = form_data(csv_columns=columns,
-                                                                   page_content=page,
-                                                                   domain=url_domain,
-                                                                   key_words_list=list(set(key_words)))
+            whole_data, number_of_submissions_in_total_in_subject = form_data(csv_columns=columns,
+                                                                              page_content=page,
+                                                                              domain=url_domain,
+                                                                              key_words_list=list(set(key_words)))
+
+            number_of_submissions_in_total += number_of_submissions_in_total_in_subject
+            # TODO: статьи могут повторяться в разных subject'ах. number_of_submissions_in_total будет неверным
 
             whole_data_from_all_subjects = whole_data_from_all_subjects.\
                 append(whole_data, ignore_index=True).\
@@ -212,9 +216,9 @@ if __name__ == "__main__":
         # unsuccessful connection
         print("-\nConnection is failed to {}".format(url))
 
-new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
-                                                           csv_columns=columns,
-                                                           all_data_output_file="arXiv.csv",
-                                                           new_data_output_file="arXiv_new.csv")
+    new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
+                                                       csv_columns=columns,
+                                                       all_data_output_file="arXiv.csv",
+                                                       new_data_output_file="arXiv_new.csv")
 
-send_mail(new_results_amount, new_results)
+    send_mail(new_results_amount, new_results)
