@@ -19,11 +19,9 @@ def number_of_inclusions(words_searched, text):
 def form_data(page_content, csv_columns, domain, key_words_list):
     """creates a dataframe with new articles that include key_words in abstracts"""
 
-    print("-\nSuccessful connection to {}".format(url))
     info = page_content.find_class("meta")
 
     submissions_data = pd.DataFrame(columns=csv_columns)
-
     title_list = []
     authors_list = []
     abstracts_list = []
@@ -190,9 +188,9 @@ if __name__ == "__main__":
     for subject in subjects:
 
         url = "https://arxiv.org/list/{0}/new".format(subject)
+        print("Connecting to {}".format(url))
         url_parsed = urlparse(url)
-        url_domain = "://".join([url_parsed.scheme, url_parsed.netloc, url_parsed.path, url_parsed.query])
-        print(url_parsed)
+        url_domain = "://".join([url_parsed.scheme, url_parsed.netloc])
         response = requests.get(url)
         page = html.fromstring(response.content)
 
@@ -200,6 +198,7 @@ if __name__ == "__main__":
 
         if response.status_code == 200:
             # successful connection
+            print("-\nConnection is successful to {}".format(url))
             whole_data, number_of_submissions_in_total_in_subject = form_data(csv_columns=columns,
                                                                               page_content=page,
                                                                               domain=url_domain,
@@ -212,9 +211,9 @@ if __name__ == "__main__":
                 append(whole_data, ignore_index=True).\
                 drop_duplicates(keep='first')
 
-    else:
-        # unsuccessful connection
-        print("-\nConnection is failed to {}".format(url))
+        else:
+            # unsuccessful connection
+            print("-\nConnection is failed to {}".format(url))
 
     new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
                                                        csv_columns=columns,
