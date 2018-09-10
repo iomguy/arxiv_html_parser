@@ -28,6 +28,7 @@ def form_data(page_content, csv_columns, domain, key_words_list):
     pdf_list = []
     included_key_words_list = []
     subject_list = []
+    index = 0
 
     if len(links) != len(info):
 
@@ -53,9 +54,9 @@ def form_data(page_content, csv_columns, domain, key_words_list):
                     x.text.replace("\n", " ") for x in meta_info_tags if x.attrib["class"] == "mathjax")
 
                 links_children = link.getchildren()
-                titles = []
-                authors = []
-                subjects = []
+                related_titles = []
+                related_authors = []
+                related_subjects = []
 
                 inclusions, included_key_words = number_of_inclusions(key_words_list, meta_info_text)
 
@@ -65,19 +66,19 @@ def form_data(page_content, csv_columns, domain, key_words_list):
                     pdf_link = ""
 
                     for meta_title in meta_info_titles:
-                        titles.append(meta_title.tail.replace("\n", ""))
+                        related_titles.append(meta_title.tail.replace("\n", ""))
 
                     for meta_author in meta_info_authors:
-                        authors.append(meta_author.text.replace("\n", ""))
+                        related_authors.append(meta_author.text.replace("\n", ""))
 
                     # TODO: добавить фильтр по соответствующим Subjects
-                    subjects.append(meta_info_primary_subject.text.replace("\n", ""))
-                    subjects.extend(meta_info_primary_subject.tail.replace("\n", "").split("; "))
-                    subjects.remove("")
+                    related_subjects.append(meta_info_primary_subject.text.replace("\n", ""))
+                    related_subjects.extend(meta_info_primary_subject.tail.replace("\n", "").split("; "))
+                    related_subjects.remove("")
 
                     try:
                         # if authors is not empty and "Authors" is the first element
-                        authors = authors[1:] if "Authors" in authors[0] else authors
+                        related_authors = related_authors[1:] if "Authors" in related_authors[0] else related_authors
 
                     except IndexError:
 
@@ -94,16 +95,16 @@ def form_data(page_content, csv_columns, domain, key_words_list):
 
                             abs_link = elem.attrib["href"]
 
-                    title_list.append("".join(titles))
-                    authors_list.append(", ".join(authors))
+                    title_list.append("".join(related_titles))
+                    authors_list.append(", ".join(related_authors))
                     abstracts_list.append(domain + abs_link)
                     pdf_list.append(domain + pdf_link)
                     included_key_words_list.append(", ".join(included_key_words))
-                    subject_list.append(", ".join(subjects))
+                    subject_list.append(", ".join(related_subjects))
 
             except StopIteration:
 
-                print("-\n{} submissions found in total".format(index))
+                print("{} submissions found in total\n-".format(index))
                 break
 
         submissions_data["Title"] = title_list
@@ -137,14 +138,14 @@ def form_data_to_csv(data, csv_columns, all_data_output_file, new_data_output_fi
             .drop_duplicates(subset=["Title", "Authors"], keep=False)
 
     number_of_res = data.shape[0]
-    print("-\n{} submissions with key words found".format(number_of_res))
+    print("{} submissions with key words found".format(number_of_res))
 
     number_of_new_res = new_data.shape[0]
-    print("-\n{} NEW submissions with key words found".format(number_of_new_res))
+    print("{} NEW submissions with key words found".format(number_of_new_res))
 
     new_data.to_csv(all_data_output_file, sep=";", mode="a", header=False, index=None)
     new_data.to_csv(new_data_output_file, sep=";", mode="w", index=None)
-    print("-\n.csv files are successfully finished!")
+    print(".csv files are successfully finished!")
 
     return number_of_new_res, new_data_output_file
 
@@ -153,7 +154,7 @@ def send_mail(amount, attachment):
     """sends file to the email and attaches a file if amount is a nonzero int"""
 
     subject = "arXiv new articles " + datetime.datetime.today().strftime("%Y.%m.%d %H:%M:%S")
-    text = "{0} NEW submissions with key words found. {1} submissions in total" \
+    text = "{0} NEW submissions with key words found. {1} submissions in total\n-" \
         .format(amount, number_of_submissions_in_total)
 
     if amount > 0:
@@ -165,7 +166,7 @@ def send_mail(amount, attachment):
         file = None
 
     smtp.send_mail("theormechipmm@mail.ru", ["theormechipmm@mail.ru"], subject, text, files=file)
-    print("-\nemail is successfully sent!")
+    print("email is successfully sent!-\n")
 
 
 if __name__ == "__main__":
@@ -198,7 +199,7 @@ if __name__ == "__main__":
 
         if response.status_code == 200:
             # successful connection
-            print("-\nConnection is successful to {}".format(url))
+            print("Connection is successful to {}".format(url))
             whole_data, number_of_submissions_in_total_in_subject = form_data(csv_columns=columns,
                                                                               page_content=page,
                                                                               domain=url_domain,
@@ -213,7 +214,7 @@ if __name__ == "__main__":
 
         else:
             # unsuccessful connection
-            print("-\nConnection is failed to {}".format(url))
+            print("Connection is failed to {}\n-".format(url))
 
     new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
                                                        csv_columns=columns,
