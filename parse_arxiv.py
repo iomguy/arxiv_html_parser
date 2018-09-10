@@ -103,9 +103,12 @@ def form_data(page_content, csv_columns, domain, key_words_list):
                     subject_list.append(", ".join(related_subjects))
 
             except StopIteration:
-
-                print("{} submissions found in total\n-".format(index))
+                # no further items produced by the iterator "next" - in case of some articles with "Replacements"
+                # -1 because the last index value relates to the first article with "Replacements"
+                index -= 1
                 break
+
+        print("{} submissions found in total\n-".format(index + 1))
 
         submissions_data["Title"] = title_list
         submissions_data["Authors"] = authors_list
