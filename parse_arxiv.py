@@ -52,7 +52,7 @@ def form_data(page_content, csv_columns, domain, key_words_list):
                 meta_info_primary_subject = next(
                     x for x in meta_info_subject if x.attrib["class"] == "primary-subject")
                 meta_info_text = next(
-                    x.text.replace("\n", "") for x in meta_info_tags if x.attrib["class"] == "mathjax")
+                    x.text.replace("\n", " ") for x in meta_info_tags if x.attrib["class"] == "mathjax")
 
                 links_children = link.getchildren()
                 titles = []
