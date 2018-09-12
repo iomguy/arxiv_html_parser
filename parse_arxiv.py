@@ -1,4 +1,6 @@
 import os
+import sys
+import argparse
 import requests
 import pandas as pd
 import lxml.html as html
@@ -6,6 +8,30 @@ import smtp
 import datetime
 from urllib.parse import urlparse
 
+
+def create_parser():
+    # parsing named arguments from command line
+    #
+    # example:
+    # python parse_arxiv -k key_words.txt -s subjects.txt
+
+    args_parser = argparse.ArgumentParser(
+        description='''arXiv new articles .html parser''',
+        epilog='''(c) September 2018. Alexander Kalyuzhnyuk''')
+
+    args_parser.add_argument('-k', '--keywords',
+                             default=None,
+                             help='Key words .txt file',
+                             metavar='KEYWORDS',
+                             type=str)
+
+    args_parser.add_argument('-s', '--subjects',
+                             default=None,
+                             help='Subjects words/collocations .txt file',
+                             metavar='SUBJECTS',
+                             type=str)
+
+    return args_parser
 
 def number_of_inclusions(words_searched, text):
     """counts elements from substr_list that are included in main_str"""
@@ -178,50 +204,63 @@ if __name__ == "__main__":
     # Разделить слова по значимости (очевидно, что ключевые слова:
     # {амплитуда, период, температура, частота, корреляция, ковариация} встречаются почти в любой научной статье
     # Совпадению по таким словам стоит ставить меньший вес чем по остальным.
+    args_parser = create_parser()
+    namespace = args_parser.parse_args(sys.argv[1:])  # sys.argv[0] is a script name
 
-    with open("key_words.txt", "r", encoding="utf-8") as key_words_file:
-        key_words = key_words_file.read().split("\n")
+    if not namespace.keywords:
+        print("You didn't input keywords file")
 
-    with open("subjects.txt", "r", encoding="utf-8") as subjects_file:
-        subjects = subjects_file.read().split("\n")
+    elif not namespace.subjects:
+        print("You didn't input subjects file")
 
-    columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words", "Subjects"]
-    whole_data_from_all_subjects = pd.DataFrame(columns=columns)
-    number_of_submissions_in_total = 0
+    else:
+        print("Beginning...")
+        print("Using {} keywords".format(namespace.keywords))
+        print("Using {} subjects".format(namespace.subjects))
 
-    for subject in subjects:
+        with open(namespace.keywords, "r", encoding="utf-8") as key_words_file:
+            key_words = key_words_file.read().split("\n")
 
-        url = "https://arxiv.org/list/{0}/new".format(subject)
-        print("Connecting to {}".format(url))
-        url_parsed = urlparse(url)
-        url_domain = "://".join([url_parsed.scheme, url_parsed.netloc])
-        response = requests.get(url)
-        page = html.fromstring(response.content)
+        with open(namespace.subjects, "r", encoding="utf-8") as subjects_file:
+            subjects = subjects_file.read().split("\n")
 
-        links = page.find_class("list-identifier")
+        columns = ["Title", "Authors", "Abstracts", "PDF", "Key_words", "Subjects"]
+        whole_data_from_all_subjects = pd.DataFrame(columns=columns)
+        number_of_submissions_in_total = 0
 
-        if response.status_code == 200:
-            # successful connection
-            print("Connection is successful to {}".format(url))
-            whole_data, number_of_submissions_in_total_in_subject = form_data(csv_columns=columns,
-                                                                              page_content=page,
-                                                                              domain=url_domain,
-                                                                              key_words_list=list(set(key_words)))
+        for subject in subjects:
 
-            number_of_submissions_in_total += number_of_submissions_in_total_in_subject
-            # TODO: статьи могут повторяться в разных subject'ах. number_of_submissions_in_total будет неверным
+            url = "https://arxiv.org/list/{0}/new".format(subject)
+            print("Connecting to {}".format(url))
+            url_parsed = urlparse(url)
+            url_domain = "://".join([url_parsed.scheme, url_parsed.netloc])
+            response = requests.get(url)
+            page = html.fromstring(response.content)
 
-            whole_data_from_all_subjects = whole_data_from_all_subjects.\
-                append(whole_data, ignore_index=True).\
-                drop_duplicates(keep='first')
+            links = page.find_class("list-identifier")
 
-        else:
-            # unsuccessful connection
-            print("Connection is failed to {}\n-".format(url))
+            if response.status_code == 200:
+                # successful connection
+                print("Connection is successful to {}".format(url))
+                whole_data, number_of_submissions_in_total_in_subject = form_data(csv_columns=columns,
+                                                                                  page_content=page,
+                                                                                  domain=url_domain,
+                                                                                  key_words_list=list(set(key_words)))
 
-    new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
-                                                       csv_columns=columns,
-                                                       all_data_output_file="arXiv.csv",
-                                                       new_data_output_file="arXiv_new.csv")
+                number_of_submissions_in_total += number_of_submissions_in_total_in_subject
+                # TODO: статьи могут повторяться в разных subject'ах. number_of_submissions_in_total будет неверным
 
-    send_mail(new_results_amount, new_results)
+                whole_data_from_all_subjects = whole_data_from_all_subjects.\
+                    append(whole_data, ignore_index=True).\
+                    drop_duplicates(keep='first')
+
+            else:
+                # unsuccessful connection
+                print("Connection is failed to {}\n-".format(url))
+
+        new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
+                                                           csv_columns=columns,
+                                                           all_data_output_file="arXiv.csv",
+                                                           new_data_output_file="arXiv_new.csv")
+
+        send_mail(new_results_amount, new_results)
