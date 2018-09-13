@@ -31,6 +31,12 @@ def create_parser():
                              metavar='SUBJECTS',
                              type=str)
 
+    args_parser.add_argument('-e', '--email',
+                             default=None,
+                             help='send_from, send_to, server, port, login, password info .txt file',
+                             metavar='EMAIL_INFO',
+                             type=str)
+
     return args_parser
 
 def number_of_inclusions(words_searched, text):
@@ -201,7 +207,7 @@ def send_mail(amount, attachment, email_info):
                    login=email_info["login"],
                    password=email_info["password"]
                    )
-    print("email is successfully sent!-\n")
+    print("email is successfully sent!\n-")
 
 
 if __name__ == "__main__":
@@ -213,19 +219,22 @@ if __name__ == "__main__":
     args_parser = create_parser()
     namespace = args_parser.parse_args(sys.argv[1:])  # sys.argv[0] is a script name
 
-
     if not namespace.keywords:
         print("You didn't input keywords file")
 
     elif not namespace.subjects:
         print("You didn't input subjects file")
 
+    elif not namespace.email:
+        print("You didn't input email info file")
+
     else:
         print("Beginning...")
         print("Using {} keywords".format(namespace.keywords))
         print("Using {} subjects".format(namespace.subjects))
+        print("Using {} email file".format(namespace.email))
 
-        email_info_dict = smtp.read_email_info("theormech_email_info.txt")
+        email_info_dict = smtp.read_email_info(namespace.email)
 
         with open(namespace.keywords, "r", encoding="utf-8") as key_words_file:
             key_words = key_words_file.read().split("\n")
