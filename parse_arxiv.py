@@ -37,6 +37,18 @@ def create_parser():
                              metavar='EMAIL_INFO',
                              type=str)
 
+    args_parser.add_argument('-a', '--all_output',
+                             default=None,
+                             help='name of the .csv file with all articles',
+                             metavar='ALL_OUTPUT_FILENAME',
+                             type=str)
+
+    args_parser.add_argument('-n', '--new_output',
+                             default=None,
+                             help='name of the .csv file with new articles',
+                             metavar='NEW_OUTPUT_FILENAME',
+                             type=str)
+
     return args_parser
 
 def number_of_inclusions(words_searched, text):
@@ -232,7 +244,9 @@ if __name__ == "__main__":
         print("Beginning...")
         print("Using {} keywords".format(namespace.keywords))
         print("Using {} subjects".format(namespace.subjects))
-        print("Using {} email file".format(namespace.email))
+        print("Using {} email file\n-".format(namespace.email))
+        print("Using {} all output file".format(namespace.all_output))
+        print("Using {} new output file-\n".format(namespace.new_output))
 
         email_info_dict = smtp.read_email_info(namespace.email)
 
@@ -278,7 +292,7 @@ if __name__ == "__main__":
 
         new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
                                                            csv_columns=columns,
-                                                           all_data_output_file="arXiv.csv",
-                                                           new_data_output_file="arXiv_new.csv")
+                                                           all_data_output_file=namespace.all_output,
+                                                           new_data_output_file=namespace.new_output)
 
         send_mail(new_results_amount, new_results, email_info=email_info_dict)
