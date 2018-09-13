@@ -1,0 +1,6 @@
+send_from:theormechipmm@mail.ru
+send_to:theormechipmm@mail.ru
+server:smtp.mail.ru
+port:465
+login:theormechipmm@mail.ru
+password:UEBQFbkoeG3hpM

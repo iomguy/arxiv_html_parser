@@ -6,6 +6,21 @@ from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 
 
+def read_email_info(filename):
+    email_info = dict()
+    lines = {"send_from", "send_to", "server", "port", "login", "password"}
+
+    with open(filename, "r", encoding="utf-8") as email_info_file:
+        for line in email_info_file:
+            key, value = line.replace("\n", "").split(":")
+            email_info[key] = value
+
+    if set(email_info.keys()) != lines:
+        raise Exception("Not all the email parameters are in the {} file".format(filename))
+
+    return email_info
+
+
 def send_mail(send_from, send_to, subject, text, files=None,
               server="smtp.mail.ru", port=465, login="theormechipmm@mail.ru", password="UEBQFbkoeG3hpM"):
     assert isinstance(send_to, list)

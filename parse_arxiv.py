@@ -179,7 +179,7 @@ def form_data_to_csv(data, csv_columns, all_data_output_file, new_data_output_fi
     return number_of_new_res, new_data_output_file
 
 
-def send_mail(amount, attachment):
+def send_mail(amount, attachment, email_info):
     """sends file to the email and attaches a file if amount is a nonzero int"""
 
     subject = "arXiv new articles " + datetime.datetime.today().strftime("%Y.%m.%d %H:%M:%S")
@@ -194,7 +194,13 @@ def send_mail(amount, attachment):
 
         file = None
 
-    smtp.send_mail("theormechipmm@mail.ru", ["theormechipmm@mail.ru"], subject, text, files=file)
+    smtp.send_mail(email_info["send_from"], [email_info["send_to"]], subject, text,
+                   files=file,
+                   server=email_info["server"],
+                   port=email_info["port"],
+                   login=email_info["login"],
+                   password=email_info["password"]
+                   )
     print("email is successfully sent!-\n")
 
 
@@ -207,6 +213,7 @@ if __name__ == "__main__":
     args_parser = create_parser()
     namespace = args_parser.parse_args(sys.argv[1:])  # sys.argv[0] is a script name
 
+
     if not namespace.keywords:
         print("You didn't input keywords file")
 
@@ -217,6 +224,8 @@ if __name__ == "__main__":
         print("Beginning...")
         print("Using {} keywords".format(namespace.keywords))
         print("Using {} subjects".format(namespace.subjects))
+
+        email_info_dict = smtp.read_email_info("theormech_email_info.txt")
 
         with open(namespace.keywords, "r", encoding="utf-8") as key_words_file:
             key_words = key_words_file.read().split("\n")
@@ -263,4 +272,4 @@ if __name__ == "__main__":
                                                            all_data_output_file="arXiv.csv",
                                                            new_data_output_file="arXiv_new.csv")
 
-        send_mail(new_results_amount, new_results)
+        send_mail(new_results_amount, new_results, email_info=email_info_dict)
