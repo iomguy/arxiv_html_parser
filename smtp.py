@@ -12,7 +12,7 @@ def read_email_info(filename):
 
     with open(filename, "r", encoding="utf-8") as email_info_file:
         for line in email_info_file:
-            key, value = line.replace("\n", "").split(":")
+            key, value = line.replace("\n", "").split(":", 1)
             email_info[key] = value
 
     if set(email_info.keys()) != lines:
