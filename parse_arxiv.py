@@ -290,9 +290,11 @@ if __name__ == "__main__":
                 # unsuccessful connection
                 print("Connection is failed to {}\n-".format(url))
 
+        # TODO: добавь в return функции ниже саму new_data
         new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
                                                            csv_columns=columns,
                                                            all_data_output_file=namespace.all_output,
                                                            new_data_output_file=namespace.new_output)
 
+        # TODO: добавь new_data.to_string() в текст сообщения
         send_mail(new_results_amount, new_results, email_info=email_info_dict)
