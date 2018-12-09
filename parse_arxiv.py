@@ -51,6 +51,7 @@ def create_parser():
 
     return args_parser
 
+
 def number_of_inclusions(words_searched, text):
     """counts elements from substr_list that are included in main_str"""
 
@@ -165,7 +166,6 @@ def form_data(page_content, csv_columns, domain, key_words_list):
 
 
 def form_data_to_csv(data, csv_columns, all_data_output_file, new_data_output_file):
-
     if not os.path.isfile(all_data_output_file):
         # if file does not exist write header
         new_data = data
@@ -194,15 +194,15 @@ def form_data_to_csv(data, csv_columns, all_data_output_file, new_data_output_fi
     new_data.to_csv(new_data_output_file, sep=";", mode="w", index=None)
     print(".csv files are successfully finished!")
 
-    return number_of_new_res, new_data_output_file
+    return number_of_new_res, new_data_output_file, new_data
 
 
-def send_mail(amount, attachment, email_info):
+def send_mail(amount, text, attachment, email_info):
     """sends file to the email and attaches a file if amount is a nonzero int"""
 
     subject = "arXiv new articles " + datetime.datetime.today().strftime("%Y.%m.%d %H:%M:%S")
-    text = "{0} NEW submissions with key words found. {1} submissions in total\n-" \
-        .format(amount, number_of_submissions_in_total)
+    text = "{0} NEW submissions with key words found. {1} submissions in total\n-{2}" \
+        .format(amount, number_of_submissions_in_total, text)
 
     if amount > 0:
 
@@ -282,19 +282,26 @@ if __name__ == "__main__":
                 number_of_submissions_in_total += number_of_submissions_in_total_in_subject
                 # TODO: статьи могут повторяться в разных subject'ах. number_of_submissions_in_total будет неверным
 
-                whole_data_from_all_subjects = whole_data_from_all_subjects.\
-                    append(whole_data, ignore_index=True).\
-                    drop_duplicates(keep='first')
+                whole_data_from_all_subjects = whole_data_from_all_subjects. \
+                    append(whole_data, ignore_index=True). \
+                    drop_duplicates(keep="first")
 
             else:
                 # unsuccessful connection
                 print("Connection is failed to {}\n-".format(url))
 
-        # TODO: добавь в return функции ниже саму new_data
-        new_results_amount, new_results = form_data_to_csv(whole_data_from_all_subjects,
-                                                           csv_columns=columns,
-                                                           all_data_output_file=namespace.all_output,
-                                                           new_data_output_file=namespace.new_output)
+        new_results_amount, new_results, new_results_df = form_data_to_csv(whole_data_from_all_subjects,
+                                                                           csv_columns=columns,
+                                                                           all_data_output_file=namespace.all_output,
+                                                                           new_data_output_file=namespace.new_output)
 
-        # TODO: добавь new_data.to_string() в текст сообщения
-        send_mail(new_results_amount, new_results, email_info=email_info_dict)
+        # TODO: добавь проверку и ограничение на размер new_results_string в тексте сообщения
+        new_results_string = new_results_df.to_string(
+            columns=["Title", "Key_words", "Key_words", "Authors", "Abstracts"],
+            index_names=False,
+            index=False)
+
+        send_mail(amount=new_results_amount,
+                  text=new_results_string,
+                  attachment=new_results,
+                  email_info=email_info_dict)
