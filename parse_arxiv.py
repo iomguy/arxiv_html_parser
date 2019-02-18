@@ -273,15 +273,16 @@ if __name__ == "__main__":
 
             if response.status_code == 200:
                 # successful connection
-                print("Connection is successful to {}".format(url))
+                # print("Connection is successful to {}".format(url))
+                print("Success")
                 whole_data, number_of_submissions_in_total_in_subject = form_data(csv_columns=columns,
                                                                                   page_content=page,
                                                                                   domain=url_domain,
                                                                                   key_words_list=list(set(key_words)))
 
                 number_of_submissions_in_total += number_of_submissions_in_total_in_subject
-                # TODO: статьи могут повторяться в разных subject'ах. number_of_submissions_in_total будет неверным
 
+                # drop duplicating papers
                 whole_data_from_all_subjects = whole_data_from_all_subjects. \
                     append(whole_data, ignore_index=True). \
                     drop_duplicates(keep="first")
@@ -296,10 +297,14 @@ if __name__ == "__main__":
                                                                            new_data_output_file=namespace.new_output)
 
         # TODO: добавь проверку и ограничение на размер new_results_string в тексте сообщения
-        new_results_string = new_results_df.to_string(
-            columns=["Title", "Key_words", "Key_words", "Authors", "Abstracts"],
-            index_names=False,
-            index=False)
+        if not new_results_df.empty:
+            new_results_string = new_results_df.to_string(
+                columns=["Title", "Key_words", "Key_words", "Authors", "Abstracts"],
+                index_names=False,
+                index=False)
+
+        else:
+            new_results_string = ""
 
         send_mail(amount=new_results_amount,
                   text=new_results_string,
